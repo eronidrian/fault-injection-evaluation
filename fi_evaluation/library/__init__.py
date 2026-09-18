@@ -1,5 +1,6 @@
 from fi_evaluation.curve import curve_from_name
 from fi_evaluation.library.library import Library, PredictableOutputs
+from fi_evaluation.library.mbedtls_p256m import MbedtlsP256m
 from fi_evaluation.library.micro_ecc import MicroECC
 from fi_evaluation.library.sca25519 import (Sca25519Ephemeral,
                                             Sca25519EphemeralHardened,
@@ -13,7 +14,8 @@ SUPPORTED_LIBRARIES = (
     Sca25519EphemeralHardened,
     Sca25519Static,
     Sca25519Unprotected,
-    SweetB)
+    SweetB,
+    MbedtlsP256m)
 
 
 def library_from_name(library_name: str, curve_name: str) -> Library:
