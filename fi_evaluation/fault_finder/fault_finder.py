@@ -374,7 +374,7 @@ def simulate_faults_parallel(library: Library, optimal_threads: int | None = Non
             # Avoid setting it to 0, FaultFinder will fail. "In production", this never happens.
             num_checkpoints = len(chunk_range) // inst_per_checkpoint or 1
             set_num_checkpoints(library, num_checkpoints)
-            set_output_dir(library, key, str(chunk_num))
+            #set_output_dir(library, key, str(chunk_num))
             set_fault_range(library, chunk_range)
 
             print(f"Starting chunk {chunk_num} for fault range {chunk_range}.")
