@@ -24,7 +24,3 @@ class SECP256R1(Curve):
         public_key = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), public_key_bytes)
         shared_secret_bytes = private_key.exchange(ec.ECDH(), public_key)
         return shared_secret_bytes
-
-curve = SECP256R1()
-shared = curve.shared_secret(curve.base_point(), bytes.fromhex("f4b7ff7cccc98813a69fae3df222bfe3f4e28f764bf91b4a10d8096ce446b254"))
-print(shared.hex())
