@@ -104,6 +104,7 @@ def evaluate_safe_error(
         library: Library,
         public_key: bytes,
         safe_error_model: SafeErrorModel,
+        result_directory: str,
         first_key: bytes | None = None
 ):
     total_instructions = get_number_of_faulted_instructions(library)
@@ -147,15 +148,15 @@ def evaluate_safe_error(
             complementary_blinded_key = find_and_set_sca25519_static_values(complementary_key)
             if original_blinded_key is None or complementary_blinded_key is None:
                 continue
-            output_dir_1 = output_dir_from_key(library, original_blinded_key)
-            output_dir_2 = output_dir_from_key(library, complementary_blinded_key)
+            output_dir_1 = output_dir_from_key(original_blinded_key, result_directory)
+            output_dir_2 = output_dir_from_key(complementary_blinded_key, result_directory)
         else:
-            output_dir_1 = output_dir_from_key(library, original_key)
-            output_dir_2 = output_dir_from_key(library, complementary_key)
+            output_dir_1 = output_dir_from_key(original_key, result_directory)
+            output_dir_2 = output_dir_from_key(complementary_key, result_directory)
 
         if not os.path.exists(output_dir_1) or not os.path.exists(output_dir_2):
-            simulate_faults(library, original_key)
-            simulate_faults(library, complementary_key)
+            simulate_faults(library, original_key,result_directory)
+            simulate_faults(library, complementary_key, result_directory)
 
         #
         # 2. Determine potentially prone instructions for this pair.

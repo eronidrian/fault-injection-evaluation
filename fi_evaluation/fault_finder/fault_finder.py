@@ -106,29 +106,27 @@ def write_fault_model_file(library: Library, instruction_fault_pairs: list[set[F
                 f.write(fault_model_string(fault))
 
 
-def output_dir_from_key(library: Library, key: bytes, absolute: bool = True) -> str:
+def output_dir_from_key(key: bytes, directory: str) -> str:
     """
     It is better to put relative paths into FaultFinder jsons, which is why
     the relative path can be requested.
     """
-    relative_path = os.path.join("demos", library.name, "outputs", key.hex())
-    if absolute:
-        return os.path.join(FAULT_FINDER_DIR, relative_path)
-    return relative_path
+    path = os.path.join(directory, key.hex())
+    return path
 
 
-def set_output_dir(library: Library, key: bytes, subdirectory: str = ""):
+def set_output_dir(library: Library, key: bytes, directory: str):
     """
     Optional subdirectory for example for parallel execution.
     """
     # Change dir so that we do not call makedirs with an absolute path.
-    os.chdir(FAULT_FINDER_DIR)
+    # os.chdir(FAULT_FINDER_DIR)
     # Relative path is also better for the fault.json file.
-    output_dir_rel = os.path.join(output_dir_from_key(library, key, False), subdirectory)
-    os.makedirs(output_dir_rel, exist_ok=True)
+    output_dir_abs = output_dir_from_key(key, directory)
+    os.makedirs(output_dir_abs, exist_ok=True)
 
     fault_json_path = get_fault_json_path(library)
-    replace_in_file(fault_json_path, r'\"output directory name\".*?\"(.*?)\"', output_dir_rel)
+    replace_in_file(fault_json_path, r'\"output directory name\".*?\"(.*?)\"', output_dir_abs)
 
 
 def set_num_threads(library: Library, num_threads: int):
@@ -229,26 +227,26 @@ def execute_faults(library: Library) -> subprocess.CompletedProcess[str]:
     return result
 
 
-def simulate_faults(library: Library, key: bytes, clean: bool = True) -> None:
+def simulate_faults(library: Library, key: bytes, result_directory: str, clean: bool = True) -> None:
     is_sca25519_static = isinstance(library, Sca25519Static)
     blinded_key = None
     if is_sca25519_static:
         blinded_key = find_and_set_sca25519_static_values(key)
         if blinded_key is None:
             raise ValueError("Could not find a working blinded key for the provided original key.")
-        set_output_dir(library, blinded_key)
+        set_output_dir(library, blinded_key, result_directory)
     else:
         set_private_key(library, key)
-        set_output_dir(library, key)
+        set_output_dir(library, key, result_directory)
 
     print(f"Simulating faults for key: {key.hex()}")
     execute_faults(library)
 
     if is_sca25519_static:
         assert blinded_key is not None  # To satisfy mypy.
-        process_outputs(output_dir_from_key(library, blinded_key), clean)
+        process_outputs(output_dir_from_key(key, result_directory), clean)
     else:
-        process_outputs(output_dir_from_key(library, key), clean)
+        process_outputs(output_dir_from_key(key,result_directory), clean)
 
 
 # There is some additional work per faulted instruction. This is hard to
@@ -332,7 +330,7 @@ def split_fault_range(fault_range: range, num_chunks: int, total_checkpoints: in
     return chunks
 
 
-def simulate_faults_parallel(library: Library, optimal_threads: int | None = None) -> None:
+def simulate_faults_parallel(library: Library, result_directory: str, optimal_threads: int | None = None) -> None:
     """
     In the entire function we do not care about the small inefficiencies that
     arise if the optimal threads does not divide the total number of cores,
@@ -394,5 +392,5 @@ def simulate_faults_parallel(library: Library, optimal_threads: int | None = Non
     #
     set_num_checkpoints(library, total_checkpoints)
     set_fault_range(library, fault_range)
-    set_output_dir(library, key)
+    set_output_dir(library, key, result_directory)
     set_num_threads(library, total_cores)

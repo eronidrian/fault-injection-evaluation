@@ -119,6 +119,8 @@ def main():
                                                  "generated randomly, but the provided value and its complement are "
                                                  "used. Should be used to avoid the expensive first iteration if "
                                                  "results for some scalar pair are already computed.")
+    parser_evaluate_safe_error.add_argument("result_directory", type=str, default=None, help="Path to the "
+                                                                                             "directory where to store the results")
 
     # simulate-parallel
     parser_simulate_parallel.add_argument("optimal_threads", type=int, nargs='?', default=None,
@@ -127,6 +129,7 @@ def main():
                                                "If no value is provided, the script will attempt to read "
                                                "an environment variable FF_OPT_THREADS. If that is not present "
                                                "either, 8 is used.")
+    parser_simulate_parallel.add_argument("--reszult_directory", type=str, help="Path to the directory where to store the results. ")
 
     # Add public_key to the commands which use it.
     # Added as the last argument so that it can be optional.
@@ -141,9 +144,9 @@ def main():
     # an "evaluation", but lets not over-engineer.
     if args.command == "simulate-parallel":
         if args.optimal_threads is None:
-            simulate_faults_parallel(library)
+            simulate_faults_parallel(library, args.result_directory)
         else:
-            simulate_faults_parallel(library, args.optimal_threads)
+            simulate_faults_parallel(library, args.result_directory, args.optimal_threads)
         # Return to avoid parsing the public key argument.
         return
 
@@ -193,7 +196,7 @@ def main():
     elif args.command == "evaluate-safe-error":
         safe_error_model = safe_error_model_from_name(args.safe_error_model)
         first_key = bytes.fromhex(args.first_key) if args.first_key else None
-        evaluate_safe_error(library, pub_key_bytes, safe_error_model, first_key)
+        evaluate_safe_error(library, pub_key_bytes, safe_error_model, args.result_directory, first_key)
 
 
 if __name__ == "__main__":
